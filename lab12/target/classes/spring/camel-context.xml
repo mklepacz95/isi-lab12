@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring       http://camel.apache.org/schema/spring/camel-spring.xsd">
+    <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
+        <!--onException>
+            <exception>org.apache.camel.http.common.HttpOperationFailedException</exception>
+            <handled>
+                <constant/>
+            </handled>
+            <setBody id="_setBody2">
+                <simple resultType="java.lang.String">Kraj: ${header.kodKraju} \n Kurs waluty: brak kursu dla waluty ${header.kodWaluty}</simple>
+            </setBody>
+            <to id="zapis-do-pliku-kursu-waluty" uri="file:zad2?charset=utf-8&amp;fileName=${header.kodKraju}.txt&amp;directoryMustExist=true&amp;fileExist=Append&amp;autoCreate=false"/>
+            <log id="kurs" message="${body}"/>
+        </onException-->
+        <!--onException>
+            <exception>org.apache.camel.http.common.HttpOperationFailedException</exception>
+            <continued>
+           		<simple />
+            </continued>
+            <setHeader headerName="kursWaluty" id="onException-kurs">
+            	<simple>Brak kursu</simple>
+            </setHeader-->
+        <!--from id="get-mock-response" uri="file:zad22?charset=utf-8&amp;fileName=response.xml"/-->
+        <!--/onException-->
+        <!--route id="zad1">
+            <from id="geoip-timer" uri="timer://zad1?period=1m"/>
+            <to id="freegeoip" uri="http4:freegeoip.app/xml/"/>
+            <setBody id="body-from-freegeoip">
+                <xpath>//IP | //CountryCode</xpath>
+            </setBody>
+            <setBody id="_setBody1">
+                <simple>Otrzymane z FreeGeoIp: ${body} \r\n</simple>
+            </setBody>
+            <log id="zad1-log" message="${body}"/>
+            <to id="toFile" uri="file:zad1-log?charset=UTF-8&amp;fileName=ZAD1-LOG.LOG&amp;fileExist=Append"/>
+        </route-->
+        <!--route id="zad2">
+            <from id="odczyt-z-folderu" uri="file:zad2?fileName=kraje.txt&amp;noop=true&amp;directoryMustExist=true&amp;autoCreate=false"/>
+            <split id="_split1">
+                <tokenize token=", "/>
+                <setHeader headerName="kodKraju" id="header-kodKraju">
+                    <simple>${body}</simple>
+                </setHeader>
+                <log id="wypisz-kod-kraju" message="Kod kraju >>> ${header.kodKraju}"/>
+                <bean id="slownik-bean"
+                    method="getKodWaluty(${header.kodKraju})" ref="walutyBean"/>
+                <setHeader headerName="kodWaluty" id="kodWaluty">
+                    <simple>${body}</simple>
+                </setHeader>
+                <log id="wypisanie-waluty" message="Kod waluty >>> ${header.kodWaluty}"/>
+                <toD id="api-nbp" uri="http4:api.nbp.pl/api/exchangerates/rates/A/${header.kodWaluty}?format=xml"/>
+                <setHeader headerName="kursWaluty" id="header-kurswaluty">
+                    <xpath resultType="java.lang.String">//Rates/Rate/Mid</xpath>
+                </setHeader>
+                <setBody id="ustaw-zawartosc-pliku">
+                    <simple resultType="java.lang.String">Kraj: ${header.kodKraju} \n Kurs waluty: ${header.kursWaluty}</simple>
+                </setBody>
+                <to id="zapis-do-pliku-kursu-waluty" uri="file:zad2?charset=utf-8&amp;fileName=${header.kodKraju}.txt&amp;directoryMustExist=true&amp;fileExist=Append&amp;autoCreate=false"/>
+                <log id="kurs" message="${body}"/>
+            </split>
+        </route-->
+        <!--route id="zad3">
+            <from id="geoip-file" uri="file:zad3?charset=utf-8&amp;fileName=ip.txt"/>
+            <toD id="freegeoip-zad3" uri="https4:freegeoip.app/xml/${body}?httpMethod=GET"/>
+            <setBody id="body-from-freegeoip-zad3">
+                <xpath resultType="java.lang.String">//CountryCode</xpath>
+            </setBody>
+            <log id="zad3-log" message="Otrzymane z FreeGeoIp: ${body}"/>
+            <to id="toFile-zad3" uri="file:zad2?charset=UTF-8&amp;fileName=kraje.txt&amp;fileExist=Append"/>
+        </route-->
+        <!--route id="zad21">
+            <from id="geoip-zad21" uri="timer://zad1?period=1m"/>
+            <to id="freegeoip" uri="https4:freegeoip.app/xml/"/>
+            <convertBodyTo charset="utf-8" id="_convertBodyTo1" type="org.w3c.dom.Document"/>
+            <setHeader headerName="kodKraju" id="body-from-freegeoip-zad21">
+                <xpath resultType="java.lang.String">//CountryCode</xpath>
+            </setHeader>
+            <setHeader headerName="ip" id="header-ip-from-freegeoip-zad21">
+                <xpath resultType="java.lang.String">//IP</xpath>
+            </setHeader>
+            <log id="log" message="Adres IP: ${header.ip} \nKod kraju: ${header.kodKraju}"/>
+            <setBody id="set-sql">
+                <simple>insert into isi.zad1 (adres_ip, kod_kraju) values ( '${header.ip}' , '${header.kodKraju}' )</simple>
+            </setBody>
+            <to id="to-jdbc-21" uri="jdbc:dataSourceName"/>
+        </route-->
+         <route id="zad23">
+            <from id="geoip-zad23" uri="timer://zad1?period=1m"/>
+            <setBody id="_setBody1-zad23">
+                <simple>select adres_ip from isi.zad3</simple>
+            </setBody>
+            <to id="to-jdbc-zad23-2" uri="jdbc:dataSourceName?outputType=SelectOne"/>
+            <setHeader headerName="ip" id="body-from-freegeoip-zad23-ip">
+                <simple>${body}</simple>
+            </setHeader>
+            <toD id="freegeoip-zad23" uri="https4:freegeoip.app/json/${header.ip}?httpMethod=GET"/>
+            <setHeader headerName="kodKraju" id="body-from-freegeoip-zad23">
+                <jsonpath resultType="java.lang.String">$.country_code</jsonpath>
+            </setHeader>
+            <log id="log-zad23" message="Adres IP: ${header.ip} \nKod kraju: ${header.kodKraju}"/>
+            <setBody id="set-sql1">
+                <simple>truncate table isi.zad2</simple>
+            </setBody>
+            <to id="to-jdbc-23-1" uri="jdbc:dataSourceName"/>
+            <setBody id="set-sql2">
+                <simple>insert into isi.zad1 (adres_ip, kod_kraju) values ( '${header.ip}' , '${header.kodKraju}' )</simple>
+            </setBody>
+            <to id="to-jdbc-23-2" uri="jdbc:dataSourceName"/>
+            <setBody id="set-sql3">
+                <simple>insert into isi.zad2 (kod_kraju) values ('${header.kodKraju}');</simple>
+            </setBody>
+            <to id="to-jdbc-23-3" uri="jdbc:dataSourceName"/>
+        </route>
+        <route id="zad22">
+            <from id="geoip-zad22" uri="timer://zad1?period=1m"/>
+            <setBody id="get-kraje">
+                <simple>select distinct kod_kraju from isi.zad2</simple>
+            </setBody>
+            <to id="to-jdbc-22" uri="jdbc:dataSourceName?outputType=SelectList"/>
+            <setHeader headerName="id" id="id-header">
+                <simple>${body.size}</simple>
+            </setHeader>
+            <setHeader headerName="copyBody" id="copy-to-header-response">
+                <simple>${body}</simple>
+            </setHeader>
+            <loop id="_loop1">
+                <simple resultType="java.lang.Integer">${body.size}</simple>
+                <setHeader headerName="id" id="id-header">
+                    <method method="substract(${header.id})" ref="substractBean"/>
+                </setHeader>
+                <log id="kod-kraju-to-console" message="${header.copyBody[${header.id}].[kod_kraju]}"/>
+                <setHeader headerName="kodKraju" id="set=header-kod-krau-zad22">
+                    <simple>${header.copyBody[${header.id}].[kod_kraju]}</simple>
+                </setHeader>
+                <setHeader headerName="kodWaluty" id="set-header-kod-waluty-zad22">
+                    <method
+                        method="getKodWaluty(${header.copyBody[${header.id}].[kod_kraju]})" ref="waluty"/>
+                </setHeader>
+                <setBody id="_setBody1">
+                    <simple>${header.kodWaluty}</simple>
+                </setBody>
+                <log id="test" message="body >>> ${header.kodWaluty}"/>
+                <doTry id="_doTry1">
+                    <toD id="api-nbp-zad222" uri="http4:api.nbp.pl/api/exchangerates/rates/A/${header.kodWaluty}?format=xml&amp;httpMethod=GET"/>
+                    <doCatch id="_doCatch1">
+                        <exception>org.apache.camel.http.common.HttpOperationFailedException</exception>
+                        <handled>
+                            <constant/>
+                        </handled>
+                        <setHeader headerName="kursWaluty" id="set-header-kod-waluty-zad22-1">
+                            <simple>Brak</simple>
+                        </setHeader>
+                    </doCatch>
+                    <setHeader headerName="kursWaluty" id="set-header-kod-waluty-zad22-2">
+                        <xpath resultType="java.lang.String">//Rates/Rate/Mid</xpath>
+                    </setHeader>
+                    <log id="log-punkt5-zad22" message="Kraj: ${header.kodKraju} \n Kurs waluty: ${header.kursWaluty}"/>
+                </doTry>
+                <setBody id="sql-to-update-zad22">
+                    <simple>update isi.zad2 set kurs_waluty='${header.kursWaluty}' where kod_kraju = '${header.kodKraju}'</simple>
+                </setBody>
+                <to id="to-jdbc-zad22-2" uri="jdbc:dataSourceName"/>
+                <to id="_to2" uri="smtps:smtp.poczta.onet.pl:465?from=mklepacz_wat@op.pl&amp;subject=ISI - email z szyny ESB&amp;to=michal.klepacz@student.wat.edu.pl&amp;password=Wat_laborki1&amp;username=mklepacz_wat@op.pl"/>
+            </loop>
+        </route>
+       
+    </camelContext>
+    <bean class="org.mycompany.Waluty" id="walutyBean" name="waluty"/>
+    <bean class="org.mycompany.Substract" id="substractBean" name="substract"/>
+    <bean
+        class="org.springframework.jdbc.datasource.SimpleDriverDataSource" id="dataSourceName">
+        <property name="driverClass" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/isi?useSSL=false&amp;allowPublicKeyRetrieval=true"/>
+        <property name="username" value="isi"/>
+        <property name="password" value="isi_user"/>
+    </bean>
+</beans>

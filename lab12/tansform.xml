@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kraje xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<kraj kraj="PL">
+	 	<kodKraju>PL</kodKraju>
+	 </kraj>
+	 <kraj kraj="DE">
+	 	<kodKraju>DE</kodKraju>
+	 </kraj>
+	 <kraj kraj="US">
+	 	<kodKraju>US</kodKraju>
+	 </kraj>
+</kraje>

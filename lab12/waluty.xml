@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<waluty xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<waluta kraj="PL">
+	 	<kodWaluty>PLN</kodWaluty>
+	 </waluta>
+	<waluta kraj="DE">
+	 	<kodWaluty>EUR</kodWaluty>
+	 </waluta>
+	 <waluta kraj="US">
+	 	<kodWaluty>USD</kodWaluty>
+	 </waluta>
+</waluty>
